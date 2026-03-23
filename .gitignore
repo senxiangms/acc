@@ -1,0 +1,12 @@
+*.o
+*.a
+*.ko
+*.cmd
+*.mod
+*.mod.c
+*.symvers
+*.order
+smoke
+.tmp_versions/
+Module.symvers
+modules.order
