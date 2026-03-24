@@ -1,4 +1,8 @@
-// SPDX-License-Identifier: MIT
+/*
+ * SPDX-License-Identifier: MIT OR GPL-2.0
+ * (Kernel module must declare a GPL-compatible MODULE_LICENSE to use
+ *  class_create/device_create et al.; they are EXPORT_SYMBOL_GPL.)
+ */
 /*
  * Minimal AAC character driver: simulated device RAM + ioctl ABI.
  * Replace dma_alloc_coherent / MMIO / doorbells with real hardware hooks.
@@ -13,6 +17,7 @@
 #include <linux/module.h>
 #include <linux/mutex.h>
 #include <linux/slab.h>
+#include <linux/types.h>
 #include <linux/uaccess.h>
 
 #include <aac/ioctl.h>
@@ -21,13 +26,13 @@
 #define AAC_CLASS_NAME "aac"
 #define AAC_MINOR_COUNT 1
 
-MODULE_LICENSE("MIT");
+MODULE_LICENSE("Dual MIT/GPL");
 MODULE_DESCRIPTION("AAC Ascend-like accelerator stub driver");
 MODULE_AUTHOR("AAC");
 
 struct aac_mem_block {
 	struct list_head list;
-	uint64_t id;
+	u64 id;
 	size_t size;
 	u8 *ptr;
 };
@@ -35,7 +40,7 @@ struct aac_mem_block {
 struct aac_device_state {
 	struct mutex lock;
 	struct list_head blocks;
-	uint64_t next_id;
+	u64 next_id;
 };
 
 static struct aac_device_state g_state;
@@ -44,7 +49,7 @@ static struct cdev g_cdev;
 static struct class *g_class;
 static struct device *g_device;
 
-static struct aac_mem_block *aac_find_block(uint64_t dev_offset)
+static struct aac_mem_block *aac_find_block(u64 dev_offset)
 {
 	struct aac_mem_block *b;
 	list_for_each_entry(b, &g_state.blocks, list) {
@@ -219,7 +224,8 @@ static int __init aac_init(void)
 	if (ret)
 		goto err_cdev;
 
-	g_class = class_create(THIS_MODULE, AAC_CLASS_NAME);
+	/* Linux 6.4+: class_create(name) only; older kernels used class_create(THIS_MODULE, name). */
+	g_class = class_create(AAC_CLASS_NAME);
 	if (IS_ERR(g_class)) {
 		ret = PTR_ERR(g_class);
 		goto err_class;
