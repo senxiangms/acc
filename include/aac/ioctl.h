@@ -1,7 +1,19 @@
 #ifndef AAC_IOCTL_H
 #define AAC_IOCTL_H
 
+/*
+ * Shared userspace + kernel ioctl ABI.
+ * Kernel builds must not use <stdint.h> (not on kernel's include path).
+ */
+#ifdef __KERNEL__
+#include <linux/types.h>
+typedef __u64 aac_u64;
+typedef __u32 aac_u32;
+#else
 #include <stdint.h>
+typedef uint64_t aac_u64;
+typedef uint32_t aac_u32;
+#endif
 
 #ifdef __KERNEL__
 #include <linux/ioctl.h>
@@ -12,42 +24,42 @@
 #define AAC_IOCTL_MAGIC 0xC1
 
 struct aac_ioctl_alloc {
-	uint64_t size;
-	uint32_t flags;
-	uint32_t _pad;
-	uint64_t dev_offset_out;
+	aac_u64 size;
+	aac_u32 flags;
+	aac_u32 _pad;
+	aac_u64 dev_offset_out;
 };
 
 struct aac_ioctl_free {
-	uint64_t dev_offset;
+	aac_u64 dev_offset;
 };
 
 struct aac_ioctl_copy_h2d {
-	uint64_t host_user_ptr;
-	uint64_t dev_offset;
-	uint64_t size;
+	aac_u64 host_user_ptr;
+	aac_u64 dev_offset;
+	aac_u64 size;
 };
 
 struct aac_ioctl_copy_d2h {
-	uint64_t dev_offset;
-	uint64_t host_user_ptr;
-	uint64_t size;
+	aac_u64 dev_offset;
+	aac_u64 host_user_ptr;
+	aac_u64 size;
 };
 
 struct aac_ioctl_kernel_arg {
-	uint32_t type;
-	uint32_t _pad;
-	uint64_t value;
+	aac_u32 type;
+	aac_u32 _pad;
+	aac_u64 value;
 };
 
 #define AAC_MAX_KERNEL_ARGS 16
 
 struct aac_ioctl_launch {
-	uint64_t code_dev_offset;
-	uint32_t entry_offset;
-	uint32_t arg_count;
-	uint32_t grid_x, grid_y, grid_z;
-	uint32_t block_x, block_y, block_z;
+	aac_u64 code_dev_offset;
+	aac_u32 entry_offset;
+	aac_u32 arg_count;
+	aac_u32 grid_x, grid_y, grid_z;
+	aac_u32 block_x, block_y, block_z;
 	struct aac_ioctl_kernel_arg args[AAC_MAX_KERNEL_ARGS];
 };
 
